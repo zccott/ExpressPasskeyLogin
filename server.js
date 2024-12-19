@@ -19,7 +19,7 @@ const {
   app.use(cookieParser())
   
   // const CLIENT_URL = "http://localhost:5173"
-  const CLIENT_URL = "https://angularpasskey.vercel.app"
+  const CLIENT_URL = "https://angular-passkey-login.vercel.app"
   const RP_ID = "localhost"
   
   app.use(cors({ origin: CLIENT_URL, credentials: true }))
