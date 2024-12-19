@@ -3,48 +3,46 @@ const {
     verifyRegistrationResponse,
     generateAuthenticationOptions,
     verifyAuthenticationResponse,
-  } = require("@simplewebauthn/server");
-  const express = require("express");
-  const cors = require("cors");
-  const cookieParser = require("cookie-parser");
+  } = require("@simplewebauthn/server")
+  const express = require("express")
+  const cors = require("cors")
+  const cookieParser = require("cookie-parser")
   const {
     getUserByEmail,
     createUser,
     updateUserCounter,
     getUserById,
-  } = require("./db");
+  } = require("./userdb")
   
-  const { connectDB } = require("./db");
-  connectDB();
+const { connectDB } = require("./db");
+connectDB();
+
+  const app = express()
+  app.use(express.json())
+  app.use(cookieParser())
   
-  const app = express();
-  app.use(express.json());
-  app.use(cookieParser());
+  const CLIENT_URL = "http://localhost:4200"
+//   const CLIENT_URL = "https://angular-passkey-login.vercel.app"
+  const RP_ID = "localhost"
+//   const RP_ID = "angular-passkey-login.vercel.app"
   
-  const CLIENT_URL = "http://localhost:4200";
-  // const CLIENT_URL = "https://angular-passkey-login.vercel.app"
-  const RP_ID = "localhost";
-  // const RP_ID = "angular-passkey-login.vercel.app"
-  
-  app.use(cors({ origin: CLIENT_URL, credentials: true }));
+  app.use(cors({ origin: CLIENT_URL, credentials: true }))
   
   app.get("/init-register", async (req, res) => {
-    console.log("init register");
-    const email = req.query.email;
+    const email = req.query.email
     if (!email) {
-      return res.status(400).json({ error: "Email is required" });
+      return res.status(400).json({ error: "Email is required" })
     }
   
-    const user = await getUserByEmail(email);
-    if (user != null) {
-      return res.status(400).json({ error: "User already exists" });
+    if (getUserByEmail(email) != null) {
+      return res.status(400).json({ error: "User already exists" })
     }
   
     const options = await generateRegistrationOptions({
       rpID: RP_ID,
-      rpName: "Web Dev Simplified",
+      rpName: "zccott",
       userName: email,
-    });
+    })
   
     res.cookie(
       "regInfo",
@@ -54,56 +52,66 @@ const {
         challenge: options.challenge,
       }),
       { httpOnly: true, maxAge: 60000, secure: true }
-    );
-    res.json(options);
-  });
+    )
+    res.json(options)
+  
+  })
   
   app.post("/verify-register", async (req, res) => {
-    console.log("verify register");
-    const regInfo = JSON.parse(req.cookies.regInfo);
-  
+    const regInfo = JSON.parse(req.cookies.regInfo)
+    console.log("register info",regInfo)
     if (!regInfo) {
-      return res.status(400).json({ error: "Registration info not found" });
+      return res.status(400).json({ error: "Registration info not found" })
     }
-  
+
     const verification = await verifyRegistrationResponse({
       response: req.body,
       expectedChallenge: regInfo.challenge,
       expectedOrigin: CLIENT_URL,
       expectedRPID: RP_ID,
-    });
+    })
+
+    console.log("user id",regInfo.userId)
+    console.log("user email",regInfo.email)
+    console.log("credentialID",verification.registrationInfo.credentialID)
+    console.log("credentialPublicKey",verification.registrationInfo.credentialPublicKey)
+    console.log("counter",verification.registrationInfo.counter)
+    console.log("credentialDeviceType",verification.registrationInfo.credentialDeviceType)
+    console.log("credentialBackedUp",verification.registrationInfo.credentialBackedUp)
+    console.log("transport",verification.registrationInfo.transport)
+
   
     if (verification.verified) {
-      // Convert the public key to Base64 before storing it
-      const publicKeyBase64 = verification.registrationInfo.credentialPublicKey.toString('base64');
-  
-      await createUser(regInfo.userId, regInfo.email, {
+      createUser(regInfo.userId, regInfo.email, {
         id: verification.registrationInfo.credentialID,
-        publicKey: publicKeyBase64,  // Store the Base64 encoded public key
+        publicKey: Buffer.from(verification.registrationInfo.credentialPublicKey), // Convert to Buffer
         counter: verification.registrationInfo.counter,
         deviceType: verification.registrationInfo.credentialDeviceType,
         backedUp: verification.registrationInfo.credentialBackedUp,
         transport: req.body.transports,
-      });
-      res.clearCookie("regInfo");
-      return res.json({ verified: verification.verified });
+      })
+      res.clearCookie("regInfo")
+      return res.json({ verified: verification.verified })
     } else {
-      return res.status(400).json({ verified: false, error: "Verification failed" });
+      return res
+        .status(400)
+        .json({ verified: false, error: "Verification failed" })
     }
-  });
+  })
   
   app.get("/init-auth", async (req, res) => {
-    console.log("init auth");
-    const email = req.query.email;
+    console.log('init auth')
+    const email = req.query.email
     if (!email) {
-      return res.status(400).json({ error: "Email is required" });
+      return res.status(400).json({ error: "Email is required" })
     }
-  
-    const user = await getUserByEmail(email);
+
+
+    const user = getUserByEmail(email)
     if (user == null) {
-      return res.status(400).json({ error: "No user for this email" });
+      return res.status(400).json({ error: "No user for this email" })
     }
-  
+    console.log(user)
     const options = await generateAuthenticationOptions({
       rpID: RP_ID,
       allowCredentials: [
@@ -113,8 +121,8 @@ const {
           transports: user.passKey.transports,
         },
       ],
-    });
-  
+    })
+  console.log('generate auth options')
     res.cookie(
       "authInfo",
       JSON.stringify({
@@ -122,26 +130,24 @@ const {
         challenge: options.challenge,
       }),
       { httpOnly: true, maxAge: 60000, secure: true }
-    );
-    res.json(options);
-  });
+    )
+  console.log(options)
+    res.json(options)
+  })
   
   app.post("/verify-auth", async (req, res) => {
-    console.log("verify auth");
-    const authInfo = JSON.parse(req.cookies.authInfo);
+    const authInfo = JSON.parse(req.cookies.authInfo)
   
     if (!authInfo) {
-      return res.status(400).json({ error: "Authentication info not found" });
+      return res.status(400).json({ error: "Authentication info not found" })
     }
   
-    const user = await getUserById(authInfo.userId);
+    const user = getUserById(authInfo.userId)
     if (user == null || user.passKey.id != req.body.id) {
-      return res.status(400).json({ error: "Invalid user" });
+      return res.status(400).json({ error: "Invalid user" })
     }
-  
-    // Decode the Base64 public key from the database
-    const publicKeyBuffer = Buffer.from(user.passKey.publicKey, "base64");
-  
+
+    console.log('verified auth user', user)
     const verification = await verifyAuthenticationResponse({
       response: req.body,
       expectedChallenge: authInfo.challenge,
@@ -149,22 +155,26 @@ const {
       expectedRPID: RP_ID,
       authenticator: {
         credentialID: user.passKey.id,
-        credentialPublicKey: publicKeyBuffer,  // Pass the decoded public key
+        credentialPublicKey: user.passKey.publicKey,
         counter: user.passKey.counter,
         transports: user.passKey.transports,
       },
-    });
+    })
+    console.log('verified auth response')
   
     if (verification.verified) {
-      await updateUserCounter(user.id, verification.authenticationInfo.newCounter);
-      res.clearCookie("authInfo");
-      return res.json({ verified: verification.verified });
+      updateUserCounter(user.id, verification.authenticationInfo.newCounter)
+      res.clearCookie("authInfo")
+      // Save user in a session cookie
+      return res.json({ verified: verification.verified })
     } else {
-      return res.status(400).json({ verified: false, error: "Verification failed" });
+      return res
+        .status(400)
+        .json({ verified: false, error: "Verification failed" })
     }
-  });
+  })
   
-  app.listen(3000, () => {
-    console.log("Server is running on http://localhost:3000");
-  });
+  app.listen(3000,"0.0.0.0", () => {
+    console.log("Server is running on http://localhost:3000")
+  })
   
