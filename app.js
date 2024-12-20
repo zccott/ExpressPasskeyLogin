@@ -23,15 +23,18 @@ connectDB();
   app.use(cookieParser())
 
   
-  const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:4200";
-  const RP_ID = process.env.RP_ID || "localhost";
+  
+  const CLIENT_URL = "http://localhost:4200"
+  const RP_ID = "localhost"
+    // const CLIENT_URL = "https://angular-passkey-login.vercel.app"
+    // const RP_ID = "angular-passkey-login.vercel.app"
 
 
   
   app.use(cors({ origin: CLIENT_URL, credentials: true }))
   
   app.get("/init-register", async (req, res) => {
-    console.log("init register");
+    console.log("init register")
     const email = req.query.email;
     if (!email) {
         return res.status(400).json({ error: "Email is required" });
@@ -56,7 +59,7 @@ connectDB();
                 email,
                 challenge: options.challenge,
             }),
-            { httpOnly: true, maxAge: 60000, secure: true }
+            { httpOnly: true, maxAge: 60000000, secure: true }
         );
 
         res.json(options);
