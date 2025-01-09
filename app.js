@@ -24,10 +24,10 @@ connectDB();
 
   
   
-  const CLIENT_URL = "http://localhost:4200"
-  const RP_ID = "localhost"
-    // const CLIENT_URL = "https://angular-passkey-login.vercel.app"
-    // const RP_ID = "angular-passkey-login.vercel.app"
+//   const CLIENT_URL = "http://localhost:4200"
+//   const RP_ID = "localhost"
+    const CLIENT_URL = "https://angular-passkey-login.vercel.app"
+    const RP_ID = "angular-passkey-login.vercel.app"
 
 
   
@@ -59,7 +59,7 @@ connectDB();
                 email,
                 challenge: options.challenge,
             }),
-            { httpOnly: true, maxAge: 60000000, secure: true }
+            { httpOnly: true, maxAge: 60000000, secure: true, sameSite: "none" }
         );
 
         res.json(options);
@@ -70,7 +70,10 @@ connectDB();
 
   
   app.post("/verify-register", async (req, res) => {
-    const regInfo = JSON.parse(req.cookies.regInfo)
+    const regInfo = JSON.parse(req.cookies.regInfo);
+    console.log("/verify-register")
+    console.log(req.body);
+    console.log(req.cookies);
     if (!regInfo) {
       return res.status(400).json({ error: "Registration info not found" })
     }
@@ -130,7 +133,7 @@ connectDB();
                 userId: user.id,
                 challenge: options.challenge,
             }),
-            { httpOnly: true, maxAge: 60000, secure: true }
+            { httpOnly: true, maxAge: 60000, secure: true, sameSite: "none" }
         )
         res.json(options)
     } catch (error) {
