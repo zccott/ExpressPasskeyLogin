@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const User = require('./models/User'); // Import the User model
+const User = require('../models/User'); // Import the User model
 
 // Function to connect to MongoDB Atlas
 const connectDB = async () => {

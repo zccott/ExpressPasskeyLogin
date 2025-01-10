@@ -29,8 +29,6 @@ connectDB();
     const CLIENT_URL = "https://angular-passkey-login.vercel.app"
     const RP_ID = "angular-passkey-login.vercel.app"
 
-
-  
   app.use(cors({ origin: CLIENT_URL, credentials: true }))
   
   app.get("/init-register", async (req, res) => {
