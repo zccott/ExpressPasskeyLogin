@@ -1,5 +1,6 @@
 const USERS = []
 
+
 function getUserByEmail(email) {
   return USERS.find(user => user.email === email)
 }
@@ -23,3 +24,4 @@ module.exports = {
   createUser,
   updateUserCounter,
 }
+

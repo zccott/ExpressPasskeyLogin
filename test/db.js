@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
-const User = require('./models/User'); // Import the User model
+const User = require('../models/User'); // Import the User model
 
 // Function to connect to MongoDB Atlas
 const connectDB = async () => {
   try {
-    await mongoose.connect('mongodb+srv://aarronrahul:aot-tech%21%40%23123@passkey.j0cps.mongodb.net/?retryWrites=true&w=majority&appName=passkey', {
+    await mongoose.connect('', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
@@ -17,6 +17,7 @@ const connectDB = async () => {
 
 // Database functions
 async function getUserByEmail(email) {
+  console.log('email', email)
   return await User.findOne({ email });
 }
 
