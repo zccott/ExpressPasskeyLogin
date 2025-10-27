@@ -6,7 +6,7 @@ const User = require('./models/User'); // Import the User model
 
 const connectDB = async () => {
   try {
-    const uri = 'mongodb+srv://aarronrahul:aot-tech%21%40%23123@passkey.j0cps.mongodb.net/?retryWrites=true&w=majority&appName=passkey';
+    const uri = 'mongodb+srv://rahulap_db_user:<db_password>@cluster0.0vts5nt.mongodb.net/?appName=Cluster0';
 
     await mongoose.connect(uri, {
       useNewUrlParser: true,
