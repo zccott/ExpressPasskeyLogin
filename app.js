@@ -26,8 +26,8 @@ connectDB();
   
 //   const CLIENT_URL = "http://localhost:4200"
 //   const RP_ID = "localhost"
-    const CLIENT_URL = "https://angular-passkey-login.vercel.app"
-    const RP_ID = "angular-passkey-login.vercel.app"
+    const CLIENT_URL = "https://zccott-logfkey.vercel.app"
+    const RP_ID = "zccott-logfkey.vercel.app"
 
   app.use(cors({ origin: CLIENT_URL, credentials: true }))
   
